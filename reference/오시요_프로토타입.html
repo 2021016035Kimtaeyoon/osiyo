@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오시요 — 앱 프로토타입</title>
+<style>
+:root{
+  --navy:#13234A; --navy2:#2B4B8C; --blue:#4A76C4; --mist:#8FA6CE;
+  --amber:#F2A93B; --amber-d:#D98A1B; --amber-bg:#FEF3E2;
+  --line:#E4EAF4; --bg:#F5F7FB; --ink:#182238; --muted:#7A87A0;
+  --ok:#2E9E63; --ok-bg:#EAF6EF; --warn:#D9534F; --warn-bg:#FDEEEE;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:Pretendard,'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
+  background:#0C1424; color:var(--ink); min-height:100vh;
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  -webkit-font-smoothing:antialiased;
+}
+/* ---------- device shell ---------- */
+#shell{display:flex; align-items:center; gap:40px; flex-wrap:wrap; justify-content:center}
+#device{
+  position:relative; width:390px; height:844px; background:#fff; border-radius:46px;
+  box-shadow:0 0 0 11px #1B2438, 0 0 0 13px #2C3650, 0 40px 90px rgba(0,0,0,.55);
+  overflow:hidden; flex:none;
+}
+#notch{position:absolute; top:0; left:50%; transform:translateX(-50%); width:150px; height:30px;
+  background:#1B2438; border-radius:0 0 18px 18px; z-index:60}
+#statusbar{position:absolute; top:0; left:0; right:0; height:48px; z-index:55;
+  display:flex; align-items:center; justify-content:space-between; padding:14px 26px 0;
+  font-size:13px; font-weight:700; color:var(--navy); pointer-events:none}
+.dark-sb #statusbar{color:#fff}
+#viewport{position:absolute; inset:0; overflow:hidden}
+
+.screen{position:absolute; inset:0; background:var(--bg); display:none; flex-direction:column;
+  padding-top:48px; padding-bottom:0}
+.screen.on{display:flex; animation:slide .26s cubic-bezier(.25,.8,.3,1)}
+.screen.on.back{animation:slideBack .26s cubic-bezier(.25,.8,.3,1)}
+@keyframes slide{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes slideBack{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+
+.hd{display:flex; align-items:center; gap:10px; padding:6px 18px 12px; background:var(--bg)}
+.hd.navy{background:var(--navy)}
+.hd .bk{width:32px;height:32px;border-radius:10px;border:0;background:#fff;cursor:pointer;
+  display:grid;place-items:center;font-size:17px;color:var(--navy);box-shadow:0 1px 4px rgba(19,35,74,.1);flex:none}
+.hd.navy .bk{background:rgba(255,255,255,.14); color:#fff}
+.hd h2{font-size:18px;font-weight:800;letter-spacing:-.02em;color:var(--navy);flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd.navy h2{color:#fff}
+.hd .act{font-size:13px;font-weight:800;color:var(--navy2);background:none;border:0;cursor:pointer}
+
+.body{flex:1; overflow-y:auto; padding:0 18px 96px; scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+
+/* ---------- components ---------- */
+.brandbar{padding:4px 18px 14px; display:flex; align-items:center; justify-content:space-between}
+.logo{font-size:23px;font-weight:900;color:var(--navy);letter-spacing:-.04em}
+.logo span{color:var(--amber)}
+.bell{width:36px;height:36px;border-radius:12px;background:#fff;display:grid;place-items:center;
+  box-shadow:0 1px 4px rgba(19,35,74,.08);font-size:16px;position:relative;cursor:pointer}
+.bell::after{content:'';position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:50%;
+  background:var(--amber);border:2px solid #fff}
+
+.search{display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid var(--line);
+  border-radius:14px;padding:12px 14px;margin:0 18px 14px;cursor:pointer;box-shadow:0 1px 4px rgba(19,35,74,.05)}
+.search .ic{color:var(--mist);font-size:15px}
+.search .ph{color:var(--muted);font-size:14px;font-weight:500}
+
+.chipsrow{display:flex;gap:7px;overflow-x:auto;padding:0 18px 14px;scrollbar-width:none}
+.chipsrow::-webkit-scrollbar{display:none}
+.tchip{flex:none;padding:8px 14px;border-radius:99px;background:#fff;border:1.5px solid var(--line);
+  font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tchip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+
+.sectitle{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;margin:16px 0 9px;
+  display:flex;justify-content:space-between;align-items:center}
+.sectitle b{color:var(--navy2);font-size:12px}
+
+.card{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:15px;margin-bottom:11px;
+  cursor:pointer;transition:transform .12s;box-shadow:0 1px 5px rgba(19,35,74,.05)}
+.card:active{transform:scale(.985)}
+.card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.card .ttl{font-size:15.5px;font-weight:800;color:var(--navy);letter-spacing:-.02em;line-height:1.35}
+.card .meta{font-size:12.5px;color:var(--muted);line-height:1.6;font-weight:500}
+.badge{flex:none;font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:99px}
+.badge.live{background:var(--warn-bg);color:var(--warn)}
+.badge.soon{background:var(--amber-bg);color:var(--amber-d)}
+.badge.plan{background:#EDF1F9;color:var(--navy2)}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.tg{font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:7px;background:#EDF1F9;color:var(--navy2)}
+.tg.w{background:var(--amber-bg);color:var(--amber-d)}
+
+.hero{background:var(--navy);border-radius:18px;padding:18px;margin-bottom:14px;color:#fff;cursor:pointer}
+.hero .k{font-size:10.5px;font-weight:800;letter-spacing:.16em;color:var(--amber);margin-bottom:8px}
+.hero .t{font-size:17px;font-weight:800;line-height:1.4;letter-spacing:-.02em}
+.hero .s{font-size:12.5px;color:#A9BEE4;margin-top:7px;line-height:1.5}
+
+.rule{height:1px;background:var(--line);margin:14px 0}
+
+.big{background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:17px;margin-bottom:12px}
+.big h3{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.big h3 .dot{width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;font-size:13.5px}
+.kv .k{color:var(--muted);font-weight:600;flex:none}
+.kv .v{color:var(--ink);font-weight:700;text-align:right}
+
+.rulelist{list-style:none}
+.rulelist li{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px;
+  line-height:1.55;color:var(--ink);font-weight:500}
+.rulelist li:last-child{border-bottom:0}
+.rulelist .ic{flex:none;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;
+  font-size:12px;font-weight:900;margin-top:1px}
+.rulelist .ic.no{background:var(--warn-bg);color:var(--warn)}
+.rulelist .ic.yes{background:var(--ok-bg);color:var(--ok)}
+.rulelist .ic.info{background:#EDF1F9;color:var(--navy2)}
+
+.btn{display:block;width:100%;padding:15px;border-radius:14px;border:0;font-size:15px;font-weight:800;
+  cursor:pointer;font-family:inherit;letter-spacing:-.01em}
+.btn.pri{background:var(--amber);color:#3A2503}
+.btn.pri:active{background:var(--amber-d)}
+.btn.sec{background:#fff;color:var(--navy);border:1.5px solid var(--line);margin-top:9px}
+.btn.navy{background:var(--navy);color:#fff}
+.hint{text-align:center;font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.5}
+
+.notice{background:var(--amber-bg);border:1.5px solid var(--amber);border-radius:14px;padding:13px;
+  font-size:12.5px;line-height:1.6;color:#6B5220;font-weight:600;margin-bottom:12px}
+.notice b{color:var(--amber-d)}
+.notice.ok{background:var(--ok-bg);border-color:#9BD3B4;color:#1E6B43}
+.notice.warn{background:var(--warn-bg);border-color:#EBAFAD;color:#8E322F}
+
+/* map */
+.map{position:relative;height:290px;border-radius:16px;overflow:hidden;border:1.5px solid var(--line);
+  margin-bottom:13px;background:#E9EEF6}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.mpin{position:absolute;transform:translate(-50%,-50%);cursor:pointer}
+.mpin .pulse{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;
+  background:rgba(242,169,59,.28);animation:pl 2s infinite}
+@keyframes pl{0%{width:20px;height:20px;opacity:.9}100%{width:88px;height:88px;opacity:0}}
+.mpin .core{position:relative;width:26px;height:26px;border-radius:50%;background:var(--amber-d);
+  border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.28)}
+.mpin.sm .core{width:18px;height:18px;background:var(--navy2)}
+.maplabel{position:absolute;background:var(--navy);color:#fff;font-size:10.5px;font-weight:800;
+  padding:5px 9px;border-radius:8px;transform:translate(-50%,-190%);white-space:nowrap;pointer-events:none}
+
+.legend{display:flex;gap:12px;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:13px;flex-wrap:wrap}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+
+/* congestion bar */
+.cbar{height:9px;border-radius:5px;background:#E7ECF5;overflow:hidden;margin:7px 0}
+.cbar div{height:100%;border-radius:5px;background:var(--amber-d)}
+
+/* march progress */
+.march{padding:6px 0 2px}
+.mline{position:relative;height:4px;background:#E7ECF5;border-radius:2px;margin:26px 0 8px}
+.mfill{position:absolute;left:0;top:0;height:100%;border-radius:2px;background:var(--amber)}
+.mnode{position:absolute;top:50%;transform:translate(-50%,-50%);width:13px;height:13px;border-radius:50%;
+  background:#D3DBE9}
+.mnode.done{background:var(--amber)}
+.mnode.now{width:21px;height:21px;background:var(--amber-d);border:4px solid #fff;
+  box-shadow:0 0 0 3px rgba(242,169,59,.4)}
+.mlabels{display:flex;justify-content:space-between;font-size:10.5px;font-weight:700;color:var(--muted)}
+.mlabels b{display:block;color:var(--navy);font-size:11.5px;margin-bottom:2px}
+
+/* venn */
+.venn{display:grid;place-items:center;padding:8px 0 4px}
+
+/* tabbar */
+#tabbar{position:absolute;left:0;right:0;bottom:0;height:78px;background:rgba(255,255,255,.96);
+  backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;z-index:50;padding-bottom:12px}
+#tabbar button{flex:1;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;font-family:inherit;padding-top:9px}
+#tabbar .i{font-size:19px;line-height:1;filter:grayscale(1);opacity:.42}
+#tabbar .l{font-size:10.5px;font-weight:800;color:var(--muted)}
+#tabbar button.on .i{filter:none;opacity:1}
+#tabbar button.on .l{color:var(--navy)}
+
+/* toast */
+#toast{position:absolute;left:50%;bottom:100px;transform:translate(-50%,20px);background:var(--navy);
+  color:#fff;font-size:13px;font-weight:700;padding:12px 18px;border-radius:12px;opacity:0;
+  transition:.28s;z-index:70;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* success screen */
+.succ{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
+.succ .ring{width:88px;height:88px;border-radius:50%;background:var(--ok-bg);display:grid;place-items:center;
+  font-size:38px;color:var(--ok);margin-bottom:22px;animation:pop .4s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.succ h2{font-size:22px;font-weight:900;color:var(--navy);letter-spacing:-.03em;margin-bottom:10px}
+.succ p{font-size:14px;color:var(--muted);line-height:1.65;font-weight:500}
+.counter{font-size:40px;font-weight:900;color:var(--navy);letter-spacing:-.04em;margin:22px 0 4px}
+.counter span{font-size:17px;color:var(--muted)}
+
+
+/* ---------- navigation ---------- */
+.navfields{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:6px 14px;margin-bottom:13px;
+  box-shadow:0 1px 5px rgba(19,35,74,.05)}
+.nf{display:flex;align-items:center;gap:11px;padding:12px 0;cursor:pointer}
+.nf + .nf{border-top:1px solid var(--line)}
+.nf .dt{width:11px;height:11px;border-radius:50%;flex:none}
+.nf .dt.a{background:var(--navy2)}
+.nf .dt.b{background:var(--amber-d)}
+.nf .tx{flex:1;font-size:14.5px;font-weight:700;color:var(--ink)}
+.nf .tx.ph{color:var(--muted);font-weight:500}
+.nf .ed{font-size:12px;font-weight:700;color:var(--mist)}
+
+.rcard{background:#fff;border:2px solid var(--line);border-radius:16px;padding:15px;margin-bottom:10px;cursor:pointer;
+  transition:transform .12s}
+.rcard:active{transform:scale(.985)}
+.rcard.pick{border-color:var(--amber);background:#FFFDF8}
+.rcard.bad{border-color:#EBAFAD;background:var(--warn-bg)}
+.rcard .rt{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.rcard .nm{font-size:14.5px;font-weight:800;color:var(--navy);letter-spacing:-.02em}
+.rcard.bad .nm{color:var(--warn)}
+.rcard .tm{font-size:21px;font-weight:900;color:var(--navy);letter-spacing:-.03em}
+.rcard.bad .tm{color:var(--warn)}
+.rcard .tm s{font-size:13px;font-weight:700;color:var(--muted);margin-right:5px}
+.rcard .ds{font-size:12.5px;color:var(--muted);font-weight:600;line-height:1.55}
+.rcard .fl{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+
+.applinks{display:flex;gap:8px;margin-top:4px}
+.applinks button{flex:1;padding:13px 6px;border-radius:13px;border:1.5px solid var(--line);background:#fff;
+  font-family:inherit;font-size:12px;font-weight:800;color:var(--navy);cursor:pointer;display:flex;
+  flex-direction:column;align-items:center;gap:5px}
+.applinks button:active{background:#F3F6FC}
+.applinks .em{font-size:17px}
+
+.turnbox{background:var(--navy);border-radius:18px;padding:20px;color:#fff;margin-bottom:12px}
+.turnbox .row1{display:flex;align-items:center;gap:15px}
+.turnbox .ar{font-size:40px;line-height:1;flex:none;color:var(--amber)}
+.turnbox .dist{font-size:30px;font-weight:900;letter-spacing:-.03em;line-height:1.1}
+.turnbox .road{font-size:14px;color:#C3D3EE;font-weight:700;margin-top:3px}
+.turnbox .eta{display:flex;justify-content:space-between;margin-top:16px;padding-top:14px;
+  border-top:1px solid rgba(143,166,206,.28);font-size:12.5px;color:#A9BEE4;font-weight:700}
+.turnbox .eta b{color:#fff;font-size:15px}
+
+.steps{list-style:none}
+.steps li{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.steps li:last-child{border-bottom:0}
+.steps .ar2{flex:none;width:28px;height:28px;border-radius:9px;background:#EDF1F9;display:grid;place-items:center;
+  font-size:14px;color:var(--navy2)}
+.steps .ar2.warn{background:var(--warn-bg);color:var(--warn)}
+.steps .ar2.done{background:var(--ok-bg);color:var(--ok)}
+.steps .t1{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.45}
+.steps .t2{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:2px}
+.steps .dd{margin-left:auto;font-size:12px;font-weight:800;color:var(--mist);flex:none;padding-left:8px}
+
+/* side panel (demo helper) */
+#panel{width:250px;flex:none;color:#fff}
+#panel h4{font-size:12px;letter-spacing:.2em;font-weight:800;color:#8FA6CE;margin-bottom:14px}
+#panel .flow{list-style:none;display:flex;flex-direction:column;gap:5px}
+#panel .flow button{width:100%;text-align:left;background:rgba(255,255,255,.06);border:1px solid rgba(143,166,206,.22);
+  color:#C7D5EA;font-size:12.5px;font-weight:700;padding:10px 12px;border-radius:10px;cursor:pointer;
+  font-family:inherit;display:flex;gap:9px;align-items:center;transition:.15s}
+#panel .flow button:hover{background:rgba(255,255,255,.12)}
+#panel .flow button.cur{background:var(--amber);border-color:var(--amber);color:#3A2503}
+#panel .flow .n{font-size:10.5px;opacity:.7;font-weight:800;min-width:15px}
+#panel .tip{margin-top:18px;font-size:11.5px;color:#7E93BC;line-height:1.65}
+@media(max-width:880px){
+  body{padding:0;align-items:flex-start}
+  #panel{display:none}
+  #device{width:100vw;height:100vh;height:100dvh;border-radius:0;box-shadow:none}
+  #notch{display:none}
+}
+</style>
+</head>
+<body>
+<div id="shell">
+
+<div id="device">
+  <div id="notch"></div>
+  <div id="statusbar"><span>9:41</span><span>▮▮▮ ⌁ ▭</span></div>
+  <div id="viewport">
+
+<!-- ══════ 1. 홈 ══════ -->
+<section class="screen on" id="home">
+  <div class="brandbar">
+    <div class="logo">오시<span>요</span></div>
+    <div class="bell" onclick="toast('알림 3건')">🔔</div>
+  </div>
+  <div class="search" onclick="go('search')">
+    <span class="ic">🔍</span><span class="ph">관심 주제로 집회 검색</span>
+  </div>
+  <div class="chipsrow">
+    <div class="tchip on">전체</div><div class="tchip">노동</div><div class="tchip">환경</div>
+    <div class="tchip">주거</div><div class="tchip">교육</div><div class="tchip">인권</div>
+  </div>
+  <div class="body">
+    <div class="hero" onclick="go('march')">
+      <div class="k">지금 진행 중</div>
+      <div class="t">광화문 일대 집회가<br>종로3가로 이동 중입니다</div>
+      <div class="s">해산 예정 18:00 · 현재 참여 1,240명 · 익명 제보 34건</div>
+    </div>
+    <div class="sectitle">오늘 · 8월 20일 <b>4건</b></div>
+
+    <div class="card" onclick="go('detail')">
+      <div class="top">
+        <div class="ttl">기후위기 대응 촉구 집회</div>
+        <span class="badge live">진행 중</span>
+      </div>
+      <div class="meta">광화문 세종대로 · 14:00–18:00<br>신고 인원 3,000명 · 주최 기후행동네트워크</div>
+      <div class="tags"><span class="tg">환경</span><span class="tg">행진 있음</span><span class="tg w">진입 금지 2곳</span></div>
+    </div>
+
+    <div class="card" onclick="go('detail')">
+      <div class="top">
+        <div class="ttl">플랫폼 노동자 처우 개선 요구</div>
+        <span class="badge soon">2시간 뒤</span>
+      </div>
+      <div class="meta">여의도 의사당대로 · 16:00–19:00<br>신고 인원 1,200명</div>
+      <div class="tags"><span class="tg">노동</span><span class="tg w">소음 한도 75dB</span></div>
+    </div>
+
+    <div class="card" onclick="go('conflict')">
+      <div class="top">
+        <div class="ttl">시청 앞 맞불 집회 2건</div>
+        <span class="badge live">겹침</span>
+      </div>
+      <div class="meta">서울광장 일대 · 13:00–17:00<br>신고 2건 겹침 · 통제 범위 확대 예상</div>
+      <div class="tags"><span class="tg w">맞불 경보</span><span class="tg">교통 통제</span></div>
+    </div>
+
+    <div class="sectitle">이번 주 예정 <b>7건</b></div>
+    <div class="card" onclick="go('detail')">
+      <div class="top">
+        <div class="ttl">전세사기 피해자 대책 촉구</div>
+        <span class="badge plan">금 14:00</span>
+      </div>
+      <div class="meta">국회 앞 · 8월 22일 14:00–17:00</div>
+      <div class="tags"><span class="tg">주거</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 2. 검색 ══════ -->
+<section class="screen" id="search">
+  <div class="hd"><button class="bk" onclick="back()">‹</button><h2>검색</h2></div>
+  <div class="body">
+    <div class="search" style="margin:0 0 16px" onclick="toast('키워드: 환경')">
+      <span class="ic">🔍</span><span class="ph" style="color:var(--ink);font-weight:700">환경</span>
+    </div>
+    <div class="sectitle">추천 주제</div>
+    <div class="chipsrow" style="padding:0 0 16px">
+      <div class="tchip on">환경</div><div class="tchip">기후</div><div class="tchip">재생에너지</div><div class="tchip">플라스틱</div>
+    </div>
+    <div class="sectitle">검색 결과 <b>3건</b></div>
+    <div class="card" onclick="go('detail')">
+      <div class="top"><div class="ttl">기후위기 대응 촉구 집회</div><span class="badge live">진행 중</span></div>
+      <div class="meta">광화문 세종대로 · 오늘 14:00–18:00</div>
+      <div class="tags"><span class="tg">환경</span><span class="tg">행진 있음</span></div>
+    </div>
+    <div class="card" onclick="go('detail')">
+      <div class="top"><div class="ttl">일회용품 규제 강화 캠페인</div><span class="badge plan">토 11:00</span></div>
+      <div class="meta">청계광장 · 8월 23일 11:00–13:00</div>
+      <div class="tags"><span class="tg">환경</span></div>
+    </div>
+    <div class="card" onclick="go('detail')">
+      <div class="top"><div class="ttl">석탄발전소 폐쇄 촉구 행진</div><span class="badge plan">일 15:00</span></div>
+      <div class="meta">시청 → 광화문 · 8월 24일 15:00–18:00</div>
+      <div class="tags"><span class="tg">환경</span><span class="tg">행진 있음</span></div>
+    </div>
+    <div class="notice" style="margin-top:14px">
+      검색 결과는 <b>경찰에 신고된 공식 정보</b>만 표시합니다. SNS·커뮤니티 게시물은 포함하지 않습니다.
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 3. 집회 상세 ══════ -->
+<section class="screen" id="detail">
+  <div class="hd"><button class="bk" onclick="back()">‹</button><h2>기후위기 대응 촉구 집회</h2>
+    <button class="act" onclick="toast('저장했습니다')">저장</button></div>
+  <div class="body">
+    <div class="big" style="border-color:var(--amber);border-width:2px">
+      <h3><span class="dot"></span>언제 · 어디서</h3>
+      <div class="kv"><span class="k">집결 시간</span><span class="v">오늘 14:00</span></div>
+      <div class="kv"><span class="k">집결 장소</span><span class="v">세종대로 사거리</span></div>
+      <div class="kv"><span class="k">해산 예정</span><span class="v">18:00</span></div>
+      <div class="kv"><span class="k">신고 인원</span><span class="v">3,000명</span></div>
+      <div class="kv"><span class="k">주최</span><span class="v">기후행동네트워크</span></div>
+      <div class="rule"></div>
+      <div class="kv"><span class="k">행진 경로</span><span class="v" style="font-weight:600;font-size:12.5px;color:var(--muted)">광화문 → 종각 → 종로3가<br>→ 동대문 → 청계천</span></div>
+    </div>
+
+    <div class="notice">
+      이 집회에는 <b>진입 금지 구역 2곳</b>과 <b>소음 한도 75dB</b> 규정이 있습니다.
+      참여 전에 반드시 확인하세요.
+    </div>
+    <button class="btn navy" onclick="go('rules')">준수사항 전체 보기 ›</button>
+
+    <div class="sectitle" style="margin-top:20px">주요 시설</div>
+    <div class="big">
+      <div class="kv"><span class="k">🚻 화장실</span><span class="v">4곳 · 가장 가까운 곳 120m</span></div>
+      <div class="kv"><span class="k">🚇 지하철 출구</span><span class="v">광화문역 3번 · 5번</span></div>
+      <div class="kv"><span class="k">⛑️ 의료지원소</span><span class="v">2곳 운영 중</span></div>
+      <div class="kv"><span class="k">♿ 접근성</span><span class="v">휠체어 경로 있음 · 수어통역 14–16시</span></div>
+      <button class="btn sec" style="margin-top:12px" onclick="go('facility')">지도에서 보기</button>
+    </div>
+
+    <div class="sectitle">현재 참여 예정</div>
+    <div class="big" style="text-align:center;padding:22px">
+      <div style="font-size:34px;font-weight:900;color:var(--navy);letter-spacing:-.04em">1,240<span style="font-size:16px;color:var(--muted)">명</span></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;font-weight:600">주최자에게 인원 예측으로 전달됩니다</div>
+    </div>
+
+    <button class="btn pri" onclick="go('joined')">참여 예정 표시하기</button>
+    <div class="hint">이름·로그인 없이 숫자만 집계됩니다.<br>누가 눌렀는지는 저장하지 않습니다.</div>
+  </div>
+</section>
+
+<!-- ══════ 4. 준수사항 ══════ -->
+<section class="screen" id="rules">
+  <div class="hd"><button class="bk" onclick="back()">‹</button><h2>준수사항</h2></div>
+  <div class="body">
+    <div class="notice warn">
+      아래 내용은 <b>집회 및 시위에 관한 법률</b>과 이 집회의 신고 내용에서 자동 생성되었습니다.
+      위반 시 해산 명령 또는 처벌 대상이 될 수 있습니다.
+    </div>
+
+    <div class="big">
+      <h3><span class="dot"></span>하면 안 되는 것</h3>
+      <ul class="rulelist">
+        <li><span class="ic no">✕</span><span><b>신고된 경로를 벗어난 행진</b><br>세종대로 → 종로 방향 외 이탈 금지</span></li>
+        <li><span class="ic no">✕</span><span><b>차로 전면 점거</b><br>신고된 2개 차로만 사용 가능</span></li>
+        <li><span class="ic no">✕</span><span><b>소음 75dB 초과</b><br>주거·병원 인근 구간에서는 65dB</span></li>
+        <li><span class="ic no">✕</span><span><b>진입 금지 구역 진입</b><br>미 대사관 100m 이내 · 청사 정문 앞</span></li>
+      </ul>
+    </div>
+
+    <div class="big">
+      <h3><span class="dot"></span>지켜야 하는 것</h3>
+      <ul class="rulelist">
+        <li><span class="ic yes">✓</span><span><b>질서유지인 지시 따르기</b><br>노란 조끼 착용 12명 배치</span></li>
+        <li><span class="ic yes">✓</span><span><b>해산 시각 준수</b><br>18:00까지 자진 해산</span></li>
+        <li><span class="ic yes">✓</span><span><b>보행자 통행로 확보</b><br>인도 절반 이상 개방</span></li>
+      </ul>
+    </div>
+
+    <div class="big">
+      <h3><span class="dot"></span>알아두면 좋은 것</h3>
+      <ul class="rulelist">
+        <li><span class="ic info">i</span><span><b>불심검문 시</b><br>신분증 제시 의무는 없으며 이유를 물을 수 있습니다</span></li>
+        <li><span class="ic info">i</span><span><b>오늘 날씨</b><br>최고 33℃ · 물 500ml 이상 지참 권장</span></li>
+        <li><span class="ic info">i</span><span><b>귀가 교통</b><br>18:00 해산 후 지하철 혼잡 예상 · 1호선 우회 권장</span></li>
+      </ul>
+    </div>
+
+    <div class="notice ok">
+      이 안내는 <b>주최 측이 참가자에게 고지한 기록</b>으로도 남습니다.
+      주최자는 고지 이행을 증명할 수 있습니다.
+    </div>
+    <button class="btn pri" onclick="go('joined')">확인했습니다 · 참여 예정 표시</button>
+  </div>
+</section>
+
+<!-- ══════ 5. 참여 완료 ══════ -->
+<section class="screen" id="joined">
+  <div class="hd"><button class="bk" onclick="back()">‹</button><h2></h2></div>
+  <div class="succ">
+    <div class="ring">✓</div>
+    <h2>참여 예정으로 집계됐습니다</h2>
+    <p>주최자는 이제 물품 준비와<br>질서유지인 배치를 숫자로 계획할 수 있습니다.</p>
+    <div class="counter">1,241<span>명</span></div>
+    <div style="font-size:12px;color:var(--muted);font-weight:700">현재 참여 예정 인원</div>
+    <div class="notice ok" style="margin-top:26px;text-align:left">
+      <b>저장된 것</b> — 예상 인원 숫자 1건<br>
+      <b>저장되지 않은 것</b> — 이름, 연락처, 위치, 누가 눌렀는지
+    </div>
+    <button class="btn sec" style="margin-top:4px" onclick="go('home')">홈으로</button>
+  </div>
+</section>
+
+<!-- ══════ 6. 시설 지도 ══════ -->
+<section class="screen" id="facility">
+  <div class="hd"><button class="bk" onclick="back()">‹</button><h2>주요 시설</h2></div>
+  <div class="body">
+    <div class="map">
+      <svg viewBox="0 0 360 290" preserveAspectRatio="xMidYMid slice">
+        <rect width="360" height="290" fill="#E9EEF6"/>
+        <g stroke="#fff" stroke-width="15" fill="none">
+          <path d="M-10 110 H370"/><path d="M-10 210 H370"/><path d="M110 -10 V300"/><path d="M250 -10 V300"/>
+        </g>
+        <g fill="#D5DEEC">
+          <rect x="20" y="26" width="70" height="66" rx="5"/><rect x="132" y="26" width="94" height="66" rx="5"/>
+          <rect x="272" y="26" width="70" height="66" rx="5"/><rect x="20" y="132" width="70" height="60" rx="5"/>
+          <rect x="272" y="132" width="70" height="60" rx="5"/><rect x="132" y="232" width="94" height="52" rx="5"/>
+        </g>
+        <circle cx="180" cy="160" r="62" fill="#F2A93B" fill-opacity=".18"/>
+        <circle cx="180" cy="160" r="34" fill="#F2A93B" fill-opacity=".3"/>
+      </svg>
+      <div class="mpin" style="left:50%;top:55%"><div class="pulse"></div><div class="core"></div></div>
+      <div class="maplabel" style="left:50%;top:55%">집결지</div>
+      <div class="mpin sm" style="left:26%;top:32%" onclick="toast('화장실 · 120m')"><div class="core"></div></div>
+      <div class="mpin sm" style="left:74%;top:36%" onclick="toast('화장실 · 240m')"><div class="core"></div></div>
+      <div class="mpin sm" style="left:30%;top:76%" onclick="toast('의료지원소 운영 중')"><div class="core"></div></div>
+      <div class="mpin sm" style="left:70%;top:72%" onclick="toast('광화문역 5번 출구')"><div class="core"></div></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--amber-d)"></i>집결지</span>
+      <span><i style="background:var(--navy2)"></i>편의시설</span>
+    </div>
+    <div class="big">
+      <h3><span class="dot"></span>가까운 순</h3>
+      <div class="kv"><span class="k">🚻 화장실</span><span class="v">세종문화회관 · 120m</span></div>
+      <div class="kv"><span class="k">⛑️ 의료지원소</span><span class="v">동화면세점 앞 · 180m</span></div>
+      <div class="kv"><span class="k">🚇 지하철</span><span class="v">광화문역 3번 · 210m</span></div>
+      <div class="kv"><span class="k">🎒 물품보관</span><span class="v">광화문역 물품보관함 · 230m</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 7. 지도(회피) ══════ -->
+<section class="screen" id="map">
+  <div class="brandbar"><div class="logo">지금 <span>지도</span></div>
+    <div class="bell" onclick="toast('내 경로 알림 켜짐')">📍</div></div>
+  <div class="body">
+    <div class="map" style="height:320px">
+      <svg viewBox="0 0 360 320" preserveAspectRatio="xMidYMid slice">
+        <rect width="360" height="320" fill="#E9EEF6"/>
+        <g stroke="#fff" stroke-width="16" fill="none">
+          <path d="M-10 120 H370"/><path d="M-10 230 H370"/><path d="M100 -10 V330"/><path d="M248 -10 V330"/>
+          <path d="M0 40 L360 300"/>
+        </g>
+        <g fill="#D5DEEC">
+          <rect x="18" y="28" width="68" height="72" rx="5"/><rect x="120" y="28" width="112" height="72" rx="5"/>
+          <rect x="266" y="28" width="72" height="72" rx="5"/><rect x="18" y="142" width="68" height="66" rx="5"/>
+          <rect x="266" y="142" width="72" height="66" rx="5"/><rect x="120" y="254" width="112" height="56" rx="5"/>
+        </g>
+        <circle cx="176" cy="170" r="70" fill="#D9534F" fill-opacity=".16"/>
+        <circle cx="176" cy="170" r="40" fill="#D9534F" fill-opacity=".26"/>
+        <circle cx="290" cy="240" r="46" fill="#F2A93B" fill-opacity=".2"/>
+        <path d="M40 300 L40 230 L100 230 L100 120 L350 120" stroke="#2B4B8C" stroke-width="6"
+              stroke-dasharray="12 9" fill="none" stroke-linecap="round"/>
+        <circle cx="40" cy="298" r="9" fill="#2B4B8C" stroke="#fff" stroke-width="3.5"/>
+      </svg>
+      <div class="mpin" style="left:49%;top:53%" onclick="go('march')"><div class="pulse"></div><div class="core"></div></div>
+      <div class="maplabel" style="left:49%;top:53%">기후위기 집회 · 3,000명</div>
+      <div class="mpin sm" style="left:80%;top:75%" onclick="go('conflict')"><div class="core" style="background:var(--warn)"></div></div>
+      <div class="maplabel" style="left:80%;top:75%;background:var(--warn)">맞불 2건 겹침</div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#D9534F"></i>통제 구간</span>
+      <span><i style="background:var(--amber-d)"></i>혼잡</span>
+      <span><i style="background:var(--navy2)"></i>추천 우회 경로</span>
+    </div>
+
+    <div class="big">
+      <h3><span class="dot"></span>세종대로 · 차로 통제 중</h3>
+      <div class="kv"><span class="k">해산 예정</span><span class="v">18:00 (2시간 12분 남음)</span></div>
+      <div class="kv"><span class="k">추천 우회</span><span class="v">사직로 경유 · +7분</span></div>
+      <div class="kv"><span class="k">영향 버스</span><span class="v">704 · 606 · 150 우회 중</span></div>
+      <div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:800">
+          <span style="color:var(--muted)">현재 혼잡도</span><span style="color:var(--amber-d)">매우 혼잡</span>
+        </div>
+        <div class="cbar"><div style="width:82%"></div></div>
+        <div style="font-size:11px;color:var(--muted);font-weight:600">서울시 실시간 데이터 + 사용자 제보 41건 보정</div>
+      </div>
+      <button class="btn pri" style="margin-top:12px" onclick="go('route')">통제 피해서 길찾기 ›</button>
+      <button class="btn sec" onclick="go('march')">행진 위치 추적 ›</button>
+    </div>
+
+    <div class="card" onclick="go('forecast')">
+      <div class="top"><div class="ttl">이번 주 통제 예보</div><span class="badge soon">주간</span></div>
+      <div class="meta">금 광화문 전면 통제 · 토 여의도 부분 통제<br>내 출근 경로 영향 2일</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 8. 행진 추적 ══════ -->
+<section class="screen" id="march">
+  <div class="hd"><button class="bk" onclick="back()">‹</button><h2>행진 실시간 추적</h2></div>
+  <div class="body">
+    <div class="notice">
+      신고서에는 <b>광화문</b>이라고만 적혀 있지만, 행렬은 계속 이동합니다.
+      현재 선두는 <b>종로3가</b>입니다.
+    </div>
+
+    <div class="big">
+      <h3><span class="dot"></span>기후위기 대응 촉구 집회</h3>
+      <div class="march">
+        <div class="mline">
+          <div class="mfill" style="width:52%"></div>
+          <div class="mnode done" style="left:0%"></div>
+          <div class="mnode done" style="left:26%"></div>
+          <div class="mnode now" style="left:52%"></div>
+          <div class="mnode" style="left:78%"></div>
+          <div class="mnode" style="left:100%"></div>
+        </div>
+        <div class="mlabels">
+          <span style="text-align:left"><b>광화문</b>14:00</span>
+          <span style="text-align:center"><b>종각</b>15:10</span>
+          <span style="text-align:center;color:var(--amber-d)"><b style="color:var(--amber-d)">종로3가</b>16:02 현재</span>
+          <span style="text-align:center"><b>동대문</b>16:40</span>
+          <span style="text-align:right"><b>청계천</b>17:30</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="big">
+      <h3><span class="dot"></span>위치는 이렇게 계산합니다</h3>
+      <div class="kv"><span class="k">익명 제보</span><span class="v">34건 · 최근 6분</span></div>
+      <div class="kv"><span class="k">신고 시간표 보간</span><span class="v">제보 없는 구간 자동 추정</span></div>
+      <div class="kv"><span class="k">위치 정확도</span><span class="v">±180m</span></div>
+      <div class="notice" style="margin:12px 0 0">
+        제보가 <b>0건이어도</b> 신고된 시간표로 예상 위치가 계속 표시됩니다.
+      </div>
+    </div>
+
+    <button class="btn pri" onclick="toast('제보 감사합니다 · 익명 처리됨')">지금 여기 지나감 제보</button>
+    <div class="hint">위치를 한 번만 기록하고, 이동 경로는 저장하지 않습니다.</div>
+  </div>
+</section>
+
+<!-- ══════ 9. 맞불 경보 ══════ -->
+<section class="screen" id="conflict">
+  <div class="hd"><button class="bk" onclick="back()">‹</button><h2>맞불 겹침 경보</h2></div>
+  <div class="body">
+    <div class="notice warn">
+      서울광장 일대에 <b>성격이 다른 신고 2건</b>이 겹쳤습니다.
+      통제 범위가 넓어지고 해산이 늦어질 수 있습니다.
+    </div>
+
+    <div class="big venn">
+      <svg viewBox="0 0 300 190" style="width:100%;max-width:280px">
+        <circle cx="112" cy="92" r="66" fill="#2B4B8C" fill-opacity=".15" stroke="#2B4B8C" stroke-width="2"/>
+        <circle cx="188" cy="92" r="66" fill="#F2A93B" fill-opacity=".22" stroke="#D98A1B" stroke-width="2"/>
+        <text x="72" y="84" font-size="13" font-weight="800" fill="#2B4B8C" text-anchor="middle">신고 A</text>
+        <text x="72" y="104" font-size="11.5" fill="#5A6E90" text-anchor="middle">2,000명</text>
+        <text x="228" y="84" font-size="13" font-weight="800" fill="#D98A1B" text-anchor="middle">신고 B</text>
+        <text x="228" y="104" font-size="11.5" fill="#8A7444" text-anchor="middle">1,500명</text>
+        <text x="150" y="96" font-size="12.5" font-weight="900" fill="#13234A" text-anchor="middle">겹침</text>
+      </svg>
+    </div>
+
+    <div class="big">
+      <h3><span class="dot"></span>예상되는 영향</h3>
+      <div class="kv"><span class="k">통제 범위</span><span class="v">서울광장 → 태평로 전 구간</span></div>
+      <div class="kv"><span class="k">해산 예정</span><span class="v">17:00 → 지연 가능</span></div>
+      <div class="kv"><span class="k">경찰력</span><span class="v">평소 대비 증가 예상</span></div>
+      <div class="kv"><span class="k">권장</span><span class="v">을지로 방면 우회</span></div>
+    </div>
+
+    <div class="notice ok">
+      <b>표시하지 않는 것</b><br>
+      오시요는 어느 집단이 지금 어디 있는지를 상대편에게 알려주지 않습니다.
+      구역 단위의 교통 위험 신호만 제공합니다.
+    </div>
+    <button class="btn navy" onclick="go('map')">우회 경로 보기</button>
+  </div>
+</section>
+
+<!-- ══════ 10. 주간 예보 ══════ -->
+<section class="screen" id="forecast">
+  <div class="hd"><button class="bk" onclick="back()">‹</button><h2>이번 주 통제 예보</h2>
+    <button class="act" onclick="toast('월요일 아침 발송으로 설정됨')">알림</button></div>
+  <div class="body">
+    <div class="notice">
+      집회는 법으로 <b>최소 48시간 전에 신고</b>됩니다.
+      그래서 이번 주 통제는 지난주에 이미 정해져 있습니다.
+    </div>
+
+    <div class="big" style="border-color:var(--amber);border-width:2px">
+      <h3><span class="dot"></span>금 · 8월 22일 · 전면 통제</h3>
+      <div class="kv"><span class="k">위치</span><span class="v">광화문 세종대로</span></div>
+      <div class="kv"><span class="k">시간</span><span class="v">14:00–18:00</span></div>
+      <div class="kv"><span class="k">신고 인원</span><span class="v">3,000명</span></div>
+      <div class="kv"><span class="k">우회 예상</span><span class="v">+12분</span></div>
+    </div>
+
+    <div class="big">
+      <h3><span class="dot"></span>토 · 8월 23일 · 부분 통제</h3>
+      <div class="kv"><span class="k">위치</span><span class="v">여의도 의사당대로</span></div>
+      <div class="kv"><span class="k">시간</span><span class="v">13:00–16:00</span></div>
+      <div class="kv"><span class="k">우회 예상</span><span class="v">+5분</span></div>
+    </div>
+
+    <div class="big" style="text-align:center;padding:20px">
+      <div style="font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em">내 출근 경로 영향</div>
+      <div style="font-size:34px;font-weight:900;color:var(--amber-d);letter-spacing:-.04em;margin:6px 0 2px">2일<span style="font-size:15px;color:var(--muted)"> / 주</span></div>
+      <div style="font-size:12px;color:var(--muted);font-weight:600">광화문역 → 시청역 경로 기준</div>
+    </div>
+
+    <button class="btn pri" onclick="toast('매주 월요일 08:00 발송')">월요일마다 받아보기</button>
+    <div class="hint">카카오톡 · 이메일 · 앱 알림 중 선택할 수 있습니다.</div>
+  </div>
+</section>
+
+<!-- ══════ 11. 내 정보 ══════ -->
+<section class="screen" id="me">
+  <div class="brandbar"><div class="logo">내 <span>정보</span></div></div>
+  <div class="body">
+    <div class="notice ok">
+      <b>로그인이 없습니다.</b><br>
+      오시요는 계정을 만들지 않으며, 누가 어떤 집회를 봤는지 저장하지 않습니다.
+    </div>
+
+    <div class="sectitle">알림 설정</div>
+    <div class="big">
+      <div class="kv"><span class="k">주간 예보</span><span class="v" style="color:var(--ok)">월요일 08:00 ✓</span></div>
+      <div class="kv"><span class="k">내 경로 통제 알림</span><span class="v" style="color:var(--ok)">켜짐 ✓</span></div>
+      <div class="kv"><span class="k">관심 주제 새 집회</span><span class="v" style="color:var(--muted)">꺼짐</span></div>
+      <div class="kv"><span class="k">맞불 겹침 경보</span><span class="v" style="color:var(--ok)">켜짐 ✓</span></div>
+    </div>
+
+    <div class="sectitle">내 경로</div>
+    <div class="big">
+      <div class="kv"><span class="k">출근</span><span class="v">광화문역 → 시청역</span></div>
+      <div class="kv"><span class="k">퇴근</span><span class="v">시청역 → 광화문역</span></div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:8px;font-weight:600;line-height:1.6">
+        경로는 이 기기에만 저장되며 서버로 전송되지 않습니다.
+      </div>
+    </div>
+
+    <div class="sectitle">내 기여</div>
+    <div class="big">
+      <div class="kv"><span class="k">익명 제보</span><span class="v">7건</span></div>
+      <div class="kv"><span class="k">참여 예정 표시</span><span class="v">3회</span></div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:8px;font-weight:600;line-height:1.6">
+        이 숫자는 기기 안에서만 셉니다. 서버에는 집계된 총합만 남습니다.
+      </div>
+    </div>
+
+    <div class="sectitle">데이터 출처</div>
+    <div class="big">
+      <div class="kv"><span class="k">집회 정보</span><span class="v">경찰청 · 서울경찰청</span></div>
+      <div class="kv"><span class="k">혼잡도</span><span class="v">서울시 실시간 도시데이터</span></div>
+      <div class="kv"><span class="k">교통 통제</span><span class="v">서울시 TOPIS</span></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════ 12. 우회 경로 ══════ -->
+<section class="screen" id="route">
+  <div class="hd"><button class="bk" onclick="back()">‹</button><h2>통제 피해서 길찾기</h2></div>
+  <div class="body">
+    <div class="navfields">
+      <div class="nf" onclick="toast('출발지 변경')">
+        <span class="dt a"></span><span class="tx">현재 위치 · 서대문역</span><span class="ed">변경</span>
+      </div>
+      <div class="nf" onclick="toast('도착지 변경')">
+        <span class="dt b"></span><span class="tx">시청역 3번 출구</span><span class="ed">변경</span>
+      </div>
+    </div>
+
+    <div class="map" style="height:250px">
+      <svg viewBox="0 0 360 250" preserveAspectRatio="xMidYMid slice">
+        <rect width="360" height="250" fill="#E9EEF6"/>
+        <g stroke="#fff" stroke-width="15" fill="none">
+          <path d="M-10 95 H370"/><path d="M-10 185 H370"/><path d="M108 -10 V260"/><path d="M246 -10 V260"/>
+        </g>
+        <g fill="#D5DEEC">
+          <rect x="18" y="18" width="72" height="60" rx="5"/><rect x="128" y="18" width="100" height="60" rx="5"/>
+          <rect x="264" y="18" width="76" height="60" rx="5"/><rect x="18" y="115" width="72" height="52" rx="5"/>
+          <rect x="264" y="115" width="76" height="52" rx="5"/><rect x="128" y="205" width="100" height="44" rx="5"/>
+        </g>
+        <!-- 통제 구역 -->
+        <circle cx="178" cy="140" r="58" fill="#D9534F" fill-opacity=".15"/>
+        <circle cx="178" cy="140" r="32" fill="#D9534F" fill-opacity=".26"/>
+        <!-- 최단(차단) 경로 -->
+        <path d="M40 215 L40 140 L320 140" stroke="#D9534F" stroke-width="5" fill="none"
+              stroke-dasharray="7 8" stroke-linecap="round" opacity=".75"/>
+        <!-- 우회 경로 -->
+        <path d="M40 215 L40 95 L108 95 L108 40 L246 40 L246 140 L320 140"
+              stroke="#2B4B8C" stroke-width="6.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="40" cy="215" r="9" fill="#2B4B8C" stroke="#fff" stroke-width="3.5"/>
+        <circle cx="320" cy="140" r="9" fill="#D98A1B" stroke="#fff" stroke-width="3.5"/>
+        <text x="178" y="145" font-size="11" font-weight="800" fill="#B03B37" text-anchor="middle">통제</text>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i style="background:#D9534F"></i>최단 경로 (통제 통과)</span>
+      <span><i style="background:#2B4B8C"></i>추천 우회</span>
+    </div>
+
+    <div class="rcard pick" onclick="go('nav')">
+      <div class="rt"><span class="nm">✓ 통제 회피 경로</span><span class="tm">25분</span></div>
+      <div class="ds">사직로 → 새문안로 경유 · 3.8km<br>세종대로 통제 구간을 지나지 않습니다</div>
+      <div class="fl"><span class="tg">신호 12개</span><span class="tg">정체 없음</span><span class="tg w">+7분</span></div>
+    </div>
+
+    <div class="rcard bad" onclick="toast('통제 구간이 포함된 경로입니다')">
+      <div class="rt"><span class="nm">✕ 최단 경로</span><span class="tm"><s>18분</s>32분</span></div>
+      <div class="ds">세종대로 직진 · 2.9km<br><b>14:00–18:00 차로 통제</b> 구간을 통과합니다</div>
+      <div class="fl"><span class="tg w">통제 구간 700m</span><span class="tg w">지연 14분</span></div>
+    </div>
+
+    <div class="notice">
+      통제 구간을 <b>경유 금지 지점</b>으로 잡아 경로를 다시 계산했습니다.
+      해산 예정 <b>18:00</b> 이후에는 최단 경로가 다시 추천됩니다.
+    </div>
+
+    <button class="btn pri" onclick="go('nav')">이 경로로 안내 시작</button>
+
+    <div class="sectitle" style="margin-top:18px">다른 앱으로 열기</div>
+    <div class="applinks">
+      <button onclick="toast('네이버지도로 경유지가 전달됩니다')"><span class="em">🟩</span>네이버지도</button>
+      <button onclick="toast('카카오맵으로 경유지가 전달됩니다')"><span class="em">🟨</span>카카오맵</button>
+      <button onclick="toast('티맵으로 경유지가 전달됩니다')"><span class="em">🟦</span>티맵</button>
+    </div>
+    <div class="hint">오시요는 자체 내비를 만들지 않습니다.<br>통제 구간을 뺀 경유지를 지도 앱에 넘겨줍니다.</div>
+  </div>
+</section>
+
+<!-- ══════ 13. 안내 중 ══════ -->
+<section class="screen" id="nav">
+  <div class="hd"><button class="bk" onclick="back()">‹</button><h2>경로 안내 중</h2>
+    <button class="act" onclick="toast('안내를 종료했습니다')">종료</button></div>
+  <div class="body">
+    <div class="turnbox">
+      <div class="row1">
+        <span class="ar">↰</span>
+        <div>
+          <div class="dist">240m</div>
+          <div class="road">사직로 방면 좌회전</div>
+        </div>
+      </div>
+      <div class="eta">
+        <span>남은 거리 <b>3.2km</b></span>
+        <span>도착 <b>10:06</b></span>
+        <span>소요 <b>21분</b></span>
+      </div>
+    </div>
+
+    <div class="notice warn">
+      <b>전방 600m 세종대로 통제 중</b><br>
+      이 경로는 통제 구간을 자동으로 피해서 안내됩니다. 해산 예정 18:00.
+    </div>
+
+    <div class="big">
+      <h3><span class="dot"></span>남은 경로</h3>
+      <ul class="steps">
+        <li><span class="ar2 done">✓</span><div><div class="t1">서대문역 출발</div><div class="t2">통일로</div></div><span class="dd">지남</span></li>
+        <li><span class="ar2">↰</span><div><div class="t1">사직로 방면 좌회전</div><div class="t2">신호 대기 예상 40초</div></div><span class="dd">240m</span></li>
+        <li><span class="ar2 warn">⚠</span><div><div class="t1">세종대로 진입 금지</div><div class="t2">집회 통제 구간 · 자동 우회 적용됨</div></div><span class="dd">600m</span></li>
+        <li><span class="ar2">↱</span><div><div class="t1">새문안로 우회전</div><div class="t2">우회 구간 시작</div></div><span class="dd">1.1km</span></li>
+        <li><span class="ar2">↑</span><div><div class="t1">태평로 직진</div><div class="t2">정체 없음</div></div><span class="dd">2.4km</span></li>
+        <li><span class="ar2">🏁</span><div><div class="t1">시청역 3번 출구 도착</div><div class="t2">목적지</div></div><span class="dd">3.2km</span></li>
+      </ul>
+    </div>
+
+    <div class="big">
+      <h3><span class="dot"></span>실시간 반영</h3>
+      <div class="kv"><span class="k">행진 선두</span><span class="v">종로3가 · 내 경로와 무관</span></div>
+      <div class="kv"><span class="k">경로 재탐색</span><span class="v">통제 변경 시 자동</span></div>
+      <div class="kv"><span class="k">해산 시</span><span class="v">최단 경로로 재안내 알림</span></div>
+    </div>
+
+    <button class="btn sec" onclick="toast('경로를 다시 계산했습니다')">경로 재탐색</button>
+  </div>
+</section>
+
+  </div><!-- /viewport -->
+
+  <div id="toast"></div>
+
+  <div id="tabbar">
+    <button class="on" data-t="home" onclick="tab('home')"><span class="i">🏠</span><span class="l">홈</span></button>
+    <button data-t="map" onclick="tab('map')"><span class="i">🗺️</span><span class="l">지도</span></button>
+    <button data-t="forecast" onclick="tab('forecast')"><span class="i">📅</span><span class="l">예보</span></button>
+    <button data-t="me" onclick="tab('me')"><span class="i">👤</span><span class="l">내 정보</span></button>
+  </div>
+</div><!-- /device -->
+
+<div id="panel">
+  <h4>화면 흐름 · 13</h4>
+  <ul class="flow" id="flowlist"></ul>
+  <div class="tip">
+    발표 시연용 프로토타입입니다.<br>
+    카드·버튼·지도 핀을 실제로 누를 수 있고,<br>
+    데이터는 예시로 채워져 있습니다.
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<script>
+var SCREENS = [
+  ['home','홈 — 오늘의 집회'],
+  ['search','검색 — 주제별'],
+  ['detail','집회 상세'],
+  ['rules','준수사항 카드 ★MVP'],
+  ['joined','참여 예정 완료'],
+  ['facility','주요 시설 지도'],
+  ['map','지도 — 회피'],
+  ['march','행진 실시간 추적'],
+  ['conflict','맞불 겹침 경보'],
+  ['route','우회 경로 · 길찾기'],
+  ['nav','턴바이턴 안내 중'],
+  ['forecast','주간 통제 예보'],
+  ['me','내 정보 — 무로그인']
+];
+var TABS = ['home','map','forecast','me'];
+var stack = ['home'], cur = 'home';
+
+function render(id, isBack){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('on','back'); });
+  var el = document.getElementById(id);
+  el.classList.add('on'); if(isBack) el.classList.add('back');
+  el.querySelector('.body') && (el.querySelector('.body').scrollTop = 0);
+  cur = id;
+  document.querySelectorAll('#tabbar button').forEach(function(b){
+    b.classList.toggle('on', b.dataset.t === id);
+  });
+  document.querySelectorAll('#flowlist button').forEach(function(b){
+    b.classList.toggle('cur', b.dataset.s === id);
+  });
+}
+function go(id){ if(id===cur) return; stack.push(id); render(id,false); }
+function back(){ if(stack.length>1){ stack.pop(); render(stack[stack.length-1], true); } }
+function tab(id){ stack = [id]; render(id,false); }
+
+var tt, tEl;
+function toast(msg){
+  tEl = tEl || document.getElementById('toast');
+  tEl.textContent = msg; tEl.classList.add('on');
+  clearTimeout(tt); tt = setTimeout(function(){ tEl.classList.remove('on'); }, 1600);
+}
+
+// build flow panel
+var fl = document.getElementById('flowlist');
+SCREENS.forEach(function(s, i){
+  var li = document.createElement('li');
+  var b = document.createElement('button');
+  b.dataset.s = s[0];
+  b.innerHTML = '<span class="n">' + (i+1) + '</span>' + s[1];
+  b.onclick = function(){ if(TABS.indexOf(s[0])>-1){ tab(s[0]); } else { go(s[0]); } };
+  li.appendChild(b); fl.appendChild(li);
+});
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' || e.key === 'Backspace'){ e.preventDefault(); back(); }
+});
+render('home', false);
+</script>
+</body>
+</html>

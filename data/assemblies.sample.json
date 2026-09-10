@@ -1,0 +1,236 @@
+[
+  {
+    "id": "gwanghwamun-climate",
+    "title": "기후위기 대응 촉구 집회",
+    "organizer": "기후행동네트워크",
+    "topics": ["환경"],
+    "status": "진행중",
+    "location": {
+      "name": "광화문 세종대로 사거리",
+      "center": { "lat": 37.572, "lng": 126.9769 }
+    },
+    "startAt": "2026-09-04T14:00:00+09:00",
+    "endAt": "2026-09-04T18:00:00+09:00",
+    "reportedHeadcount": 3000,
+    "attendingCount": 1240,
+    "marchRoute": {
+      "waypoints": [
+        {
+          "name": "광화문",
+          "location": { "lat": 37.572, "lng": 126.9769 },
+          "scheduledAt": "2026-09-04T14:00:00+09:00",
+          "actualPassedAt": "2026-09-04T14:00:00+09:00"
+        },
+        {
+          "name": "종각",
+          "location": { "lat": 37.5701, "lng": 126.9832 },
+          "scheduledAt": "2026-09-04T15:10:00+09:00",
+          "actualPassedAt": "2026-09-04T15:10:00+09:00"
+        },
+        {
+          "name": "종로3가",
+          "location": { "lat": 37.5703, "lng": 126.991 },
+          "scheduledAt": "2026-09-04T16:02:00+09:00",
+          "actualPassedAt": "2026-09-04T16:02:00+09:00"
+        },
+        {
+          "name": "동대문",
+          "location": { "lat": 37.5714, "lng": 127.0098 },
+          "scheduledAt": "2026-09-04T16:40:00+09:00"
+        },
+        {
+          "name": "청계천",
+          "location": { "lat": 37.5705, "lng": 127.013 },
+          "scheduledAt": "2026-09-04T17:30:00+09:00"
+        }
+      ],
+      "reportCount": 34,
+      "lastReportAt": "2026-09-04T15:56:00+09:00"
+    },
+    "compliance": [
+      {
+        "kind": "금지",
+        "title": "신고된 경로를 벗어난 행진",
+        "description": "세종대로 → 종로 방향 외 이탈 금지",
+        "legalBasis": "집회 및 시위에 관한 법률 제16조"
+      },
+      {
+        "kind": "금지",
+        "title": "차로 전면 점거",
+        "description": "신고된 2개 차로만 사용 가능"
+      },
+      {
+        "kind": "금지",
+        "title": "소음 75dB 초과",
+        "description": "주거·병원 인근 구간에서는 65dB 이하 준수",
+        "legalBasis": "집회 및 시위에 관한 법률 제14조"
+      },
+      {
+        "kind": "금지",
+        "title": "진입 금지 구역 진입",
+        "description": "미 대사관 100m 이내, 정부서울청사 정문 앞"
+      },
+      {
+        "kind": "의무",
+        "title": "질서유지인 지시 따르기",
+        "description": "노란 조끼 착용 질서유지인 12명 배치"
+      },
+      {
+        "kind": "의무",
+        "title": "해산 시각 준수",
+        "description": "18:00까지 자진 해산"
+      },
+      {
+        "kind": "의무",
+        "title": "보행자 통행로 확보",
+        "description": "인도 절반 이상 개방"
+      },
+      {
+        "kind": "참고",
+        "title": "불심검문 시",
+        "description": "신분증 제시 의무는 없으며 이유를 물을 수 있습니다"
+      },
+      {
+        "kind": "참고",
+        "title": "귀가 교통",
+        "description": "18:00 해산 후 지하철 혼잡 예상, 1호선 우회 권장"
+      }
+    ],
+    "restrictedZones": [
+      {
+        "name": "미국 대사관 인근",
+        "center": { "lat": 37.5733, "lng": 126.9784 },
+        "radiusM": 100,
+        "activeFrom": "2026-09-04T14:00:00+09:00",
+        "activeUntil": "2026-09-04T18:00:00+09:00"
+      },
+      {
+        "name": "정부서울청사 정문",
+        "center": { "lat": 37.5762, "lng": 126.9784 },
+        "radiusM": 60,
+        "activeFrom": "2026-09-04T14:00:00+09:00",
+        "activeUntil": "2026-09-04T18:00:00+09:00"
+      }
+    ],
+    "noiseLimitDb": 75,
+    "source": { "provider": "서울경찰청", "fetchedAt": "2026-09-04T13:00:00+09:00" }
+  },
+  {
+    "id": "yeouido-labor",
+    "title": "플랫폼 노동자 처우 개선 요구",
+    "organizer": "전국플랫폼노동조합연대",
+    "topics": ["노동"],
+    "status": "예정",
+    "location": {
+      "name": "여의도 국회의사당대로",
+      "center": { "lat": 37.5296, "lng": 126.9246 }
+    },
+    "startAt": "2026-09-04T16:00:00+09:00",
+    "endAt": "2026-09-04T19:00:00+09:00",
+    "reportedHeadcount": 1200,
+    "attendingCount": 340,
+    "compliance": [
+      {
+        "kind": "금지",
+        "title": "소음 75dB 초과",
+        "description": "국회 인근 구간은 65dB 이하 준수"
+      },
+      {
+        "kind": "의무",
+        "title": "해산 시각 준수",
+        "description": "19:00까지 자진 해산"
+      }
+    ],
+    "restrictedZones": [],
+    "noiseLimitDb": 75,
+    "source": { "provider": "서울경찰청", "fetchedAt": "2026-09-04T13:00:00+09:00" }
+  },
+  {
+    "id": "cityhall-rally-a",
+    "title": "노동 현안 총궐기 집회",
+    "organizer": "전국노동자연대",
+    "topics": ["노동"],
+    "status": "진행중",
+    "location": {
+      "name": "서울광장 (태평로 방면)",
+      "center": { "lat": 37.5658, "lng": 126.9774 }
+    },
+    "startAt": "2026-09-04T13:00:00+09:00",
+    "endAt": "2026-09-04T17:00:00+09:00",
+    "reportedHeadcount": 2000,
+    "attendingCount": 980,
+    "compliance": [
+      {
+        "kind": "의무",
+        "title": "해산 시각 준수",
+        "description": "17:00까지 자진 해산, 겹침으로 지연 가능"
+      }
+    ],
+    "restrictedZones": [
+      {
+        "name": "서울광장 일대",
+        "center": { "lat": 37.5658, "lng": 126.9779 },
+        "radiusM": 220,
+        "activeFrom": "2026-09-04T13:00:00+09:00",
+        "activeUntil": "2026-09-04T17:00:00+09:00"
+      }
+    ],
+    "source": { "provider": "서울경찰청", "fetchedAt": "2026-09-04T13:00:00+09:00" }
+  },
+  {
+    "id": "cityhall-rally-b",
+    "title": "노동 현안 규탄 맞불 집회",
+    "organizer": "시민연대모임",
+    "topics": ["정치"],
+    "status": "진행중",
+    "location": {
+      "name": "서울광장 (을지로 방면)",
+      "center": { "lat": 37.5651, "lng": 126.9793 }
+    },
+    "startAt": "2026-09-04T13:00:00+09:00",
+    "endAt": "2026-09-04T17:00:00+09:00",
+    "reportedHeadcount": 1500,
+    "attendingCount": 410,
+    "compliance": [
+      {
+        "kind": "의무",
+        "title": "해산 시각 준수",
+        "description": "17:00까지 자진 해산, 겹침으로 지연 가능"
+      }
+    ],
+    "restrictedZones": [
+      {
+        "name": "서울광장 일대",
+        "center": { "lat": 37.5658, "lng": 126.9779 },
+        "radiusM": 220,
+        "activeFrom": "2026-09-04T13:00:00+09:00",
+        "activeUntil": "2026-09-04T17:00:00+09:00"
+      }
+    ],
+    "source": { "provider": "서울경찰청", "fetchedAt": "2026-09-04T13:00:00+09:00" }
+  },
+  {
+    "id": "assembly-jeonse",
+    "title": "전세사기 피해자 대책 촉구",
+    "organizer": "전세사기피해자대책위원회",
+    "topics": ["주거"],
+    "status": "예정",
+    "location": {
+      "name": "국회 앞",
+      "center": { "lat": 37.5326, "lng": 126.9195 }
+    },
+    "startAt": "2026-09-06T14:00:00+09:00",
+    "endAt": "2026-09-06T17:00:00+09:00",
+    "reportedHeadcount": 400,
+    "attendingCount": 62,
+    "compliance": [
+      {
+        "kind": "의무",
+        "title": "해산 시각 준수",
+        "description": "17:00까지 자진 해산"
+      }
+    ],
+    "restrictedZones": [],
+    "source": { "provider": "서울경찰청", "fetchedAt": "2026-09-04T13:00:00+09:00" }
+  }
+]
